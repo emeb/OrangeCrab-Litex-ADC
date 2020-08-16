@@ -52,7 +52,6 @@ from migen.genlib.cdc import MultiReg
 import valentyusb
 
 from rtl.rgb import RGB
-from rtl.analog import AnalogSense
 from litex.soc.cores import spi_flash
 from litex.soc.cores.gpio import GPIOTristate, GPIOOut, GPIOIn
 
@@ -225,7 +224,6 @@ class BaseSoC(SoCCore):
         "button":         17,
         "spi":            18,
         "i2c":            19,
-        "asense":         20,
     }
     csr_map.update(SoCCore.csr_map)
 
@@ -318,9 +316,6 @@ class BaseSoC(SoCCore):
         self.comb += platform.request("rst_n").eq(reset_code != 0xAA550001)
 
         self.submodules.button = GPIOIn(platform.request("usr_btn"))
-        
-        # Analog Mux
-        self.submodules.asense = AnalogSense(platform.request("analog"))
         
         # The litex SPI module supports memory-mapped reads, as well as a bit-banged mode
         # for doing writes.
