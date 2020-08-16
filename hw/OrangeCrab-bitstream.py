@@ -178,7 +178,6 @@ class BaseSoC(SoCCore):
         "version":        14,
         "lxspi":          15,
         "button":         17,
-        "spi":            18,
         "i2c":            19,
     }
     csr_map.update(SoCCore.csr_map)
@@ -255,7 +254,6 @@ class BaseSoC(SoCCore):
 
         # RGB LED
         led = platform.request("rgb_led", 0)
-
         self.submodules.gpio_led = GPIOTristate(Cat(led.r,led.g,led.b))
 
         # i2c
