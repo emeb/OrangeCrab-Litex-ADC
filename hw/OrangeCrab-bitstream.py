@@ -3,6 +3,13 @@
 # This file is Copyright (c) Greg Davill <greg.davill@gmail.com>
 # License: BSD
 
+# Modified for OrangeCrab ADC board Eric Brombaugh <ebrombaugh1@cox.net>
+
+# Power Dissipation suggestions from Greg on OrangeCrab Discord:
+# You can save a reasonable amount of power by not using the "virtual"
+# power pins. The next step is disabling ODT (Which requires altering
+# a LiteX source file.) You can also disable termination on the DQ group.
+# (In the OrangeCrab platform file.)
 
 # This variable defines all the external programs that this module
 # relies on.  lxbuildenv reads this variable in order to ensure
@@ -246,7 +253,8 @@ class BaseSoC(SoCCore):
                 l2_cache_reverse        = True
             )
 
-            self.comb += ddr_pads.vccio.eq(1)
+            # Virtual power pins - suggested to reduce SSO noise
+            #self.comb += ddr_pads.vccio.eq(1)
             self.comb += ddr_pads.gnd.eq(0)
 
         # Add extra pin definitions
