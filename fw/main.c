@@ -14,9 +14,6 @@
 #include <irq.h>
 #include <uart.h>
 
-#include <dac53608.h>
-#include <mcp23s08.h>
-
 #include <sleep.h>
 #include <flash-spi.h>
 
@@ -88,14 +85,6 @@ int main(int i, char **c)
 		//self_reset_out_write(0xAA550001);
 	}
 	printf("Test:DDR3|Pass\n");
-
-	/* Configure I2C, read ID code from DAC */
-	printf("Test:I2C, Start\n");
-	dac_reset();
-	if(dac_read_id() == false){
-		test_fail("Test:I2C|Fail");
-	}
-	printf("Test:I2C|Pass\n");
 
 	/* Test of LED GPIO */
 	uint8_t led_gpio_patterns[] = {0x0, 0x1, 0x2, 0x4, 0x7};

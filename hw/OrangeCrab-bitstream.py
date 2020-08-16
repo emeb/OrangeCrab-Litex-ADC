@@ -55,31 +55,28 @@ from rtl.rgb import RGB
 from litex.soc.cores import spi_flash
 from litex.soc.cores.gpio import GPIOTristate, GPIOOut, GPIOIn
 
-# Small hack to add Pull-up to the RGB-LED I/O pins, for detecting shorts
-rgb_led_io = [
-    ("rgb_led_io", 0,
-        Subsignal("r", Pins("K4"), IOStandard("LVCMOS33"), Misc("PULLMODE=UP")),
-        Subsignal("g", Pins("M3"), IOStandard("LVCMOS33"), Misc("PULLMODE=UP")),
-        Subsignal("b", Pins("J3"), IOStandard("LVCMOS33"), Misc("PULLMODE=UP")),
-    )
-]
+#  fn       RX  TX  SDA SCL                           MISO SCK MOSI  a0 a1 a2 a3 a4 a5
+#  GPIO#     0   1   2   3 4  5   6 7 8  9 10 11 12 13 14  15  16  17 18 19 20 21 22 23
+# ("GPIO", "N17 M18 C10 C9 - B10 B9 - - C8 B8 A8 H2 J2 N15 R17 N16 - L4 N3 N4 H4 G4 T17"),
+# adc data - M18 N17 N15 B10 B9 C8 B8 A8 H2 J2
 
-# connect all remaninig GPIO pins out
+# connect all remaining GPIO pins out
 extras = [
-    ("gpio", 0, Pins("GPIO:1 GPIO:5 GPIO:6 GPIO:9 GPIO:10 GPIO:11 GPIO:12 GPIO:13  GPIO:18 GPIO:19 GPIO:20 GPIO:21"), 
-        IOStandard("LVCMOS33"), Misc("PULLMODE=DOWN")),
+    ("ad9203", 0,
+        Subsignal("data", Pins("GPIO:0 GPIO:1 GPIO:14 GPIO:5 GPIO:6 GPIO:9 GPIO:10 GPIO:11 GPIO:12 GPIO:13")),
+        Subsignal("clk", Pins("GPIO:23")),
+        IOStandard("LVCMOS33")
+    ),
+    ("pdm_out", 0,
+        Subsignal("l", Pins("GPIO:15")),
+        Subsignal("r", Pins("GPIO:16")),
+        IOStandard("LVCMOS33")
+    ),
     ("i2c", 0,
-        Subsignal("sda", Pins("GPIO:2"), IOStandard("LVCMOS33")),
-        Subsignal("scl", Pins("GPIO:3"), IOStandard("LVCMOS33"))
+        Subsignal("sda", Pins("GPIO:2")),
+        Subsignal("scl", Pins("GPIO:3")),
+        IOStandard("LVCMOS33")
     ),
-    ("spi",0,
-        Subsignal("miso", Pins("GPIO:14"), IOStandard("LVCMOS33")),
-        Subsignal("mosi", Pins("GPIO:16"), IOStandard("LVCMOS33")),
-        Subsignal("clk",  Pins("GPIO:15"), IOStandard("LVCMOS33")),
-        Subsignal("cs_n", Pins("GPIO:0"), IOStandard("LVCMOS33"))
-    ),
-    ("ldac", 0, Pins("GPIO:1"), IOStandard("LVCMOS33")),
-    ("clrdac", 0, Pins("GPIO:5"), IOStandard("LVCMOS33")),
     ("analog", 0,
         Subsignal("mux", Pins("F4 F3 F2 H1")),
         Subsignal("enable", Pins("F1")),
@@ -89,46 +86,6 @@ extras = [
         IOStandard("LVCMOS33")
     )
 ]
-
-
-class GPIOTristateCustom(Module, AutoCSR):
-    def __init__(self, pads):
-        nbits     = len(pads)
-        fields=[
-                CSRField(str("dac_ldac"), 1, 1  ,description="Load Dac, Active LOW"),
-                CSRField(str("dac_clr"),  1, 5  ,description="Clear Dac, Actiwe LOW"),
-                CSRField(str("io6"), 1, 6  ,description="Control for I/O pin 6"),
-                CSRField(str("io9"), 1, 9  ,description="Control for I/O pin 9"),
-                CSRField(str("io10"), 1, 10,description="Control for I/O pin 10"),
-                CSRField(str("io11"), 1, 11,description="Control for I/O pin 11"),
-                CSRField(str("io12"), 1, 12,description="Control for I/O pin 12"),
-                CSRField(str("io13"), 1, 13,description="Control for I/O pin 13"),
-                CSRField(str("io18"), 1, 18,description="Control for I/O pin 18"),
-                CSRField(str("io19"), 1, 19,description="Control for I/O pin 19"),
-                CSRField(str("io20"), 1, 20,description="Control for I/O pin 10"),
-                CSRField(str("io21"), 1, 21,description="Control for I/O pin 21"),
-            ]
-
-        self._oe  = CSRStorage(nbits, description="""GPIO Tristate(s) Control.
-        Write ``1`` enable output driver""", fields=fields)
-        self._in  = CSRStatus(nbits,  description="""GPIO Input(s) Status.
-        Input value of IO pad as read by the FPGA""", fields=fields)
-        self._out = CSRStorage(nbits, description="""GPIO Ouptut(s) Control.
-        Value loaded into the output driver""", fields=fields)
-
-        # # #
-
-        _pads = Signal(nbits)
-        self.comb += _pads.eq(pads)
-
-        for i,f in enumerate(fields):
-            t = TSTriple()
-            self.specials += t.get_tristate(_pads[i])
-            self.comb += t.oe.eq(self._oe.storage[f.offset])
-            self.comb += t.o.eq(self._out.storage[f.offset])
-            self.specials += MultiReg(t.i, self._in.status[f.offset])
-
-
 
 # CRG ---------------------------------------------------------------------------------------------
 
@@ -217,7 +174,6 @@ class BaseSoC(SoCCore):
         "timer0":         5,  # provided by default (optional)
        
         "gpio_led":       10,
-        "gpio":           11,
         "self_reset":     12,
         "version":        14,
         "lxspi":          15,
@@ -298,14 +254,9 @@ class BaseSoC(SoCCore):
         platform.add_extension(extras)
 
         # RGB LED
-        platform.add_extension(rgb_led_io)
-        led = platform.request("rgb_led_io", 0)
+        led = platform.request("rgb_led", 0)
 
         self.submodules.gpio_led = GPIOTristate(Cat(led.r,led.g,led.b))
-        self.submodules.gpio = GPIOTristateCustom(platform.request("gpio", 0))
-
-        # SPI
-        self.submodules.spi = SPIMaster(platform.request("spi"), 24, sys_clk_freq, int(4e6))
 
         # i2c
         self.submodules.i2c = I2CMaster(platform.request("i2c"))

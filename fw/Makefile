@@ -12,8 +12,6 @@ CFLAGS += -DI2C_FREQ_HZ=400
 OBJECTS = isr.o			\
 		sleep.o         \
 		flash-spi.o     \
-		dac53608.o      \
-		mcp23s08.o      \
 	    main.o
 
 
