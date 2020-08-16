@@ -10,6 +10,12 @@
 # power pins. The next step is disabling ODT (Which requires altering
 # a LiteX source file.) You can also disable termination on the DQ group.
 # (In the OrangeCrab platform file.)
+#
+# Measurements:
+# Original current : 0.29A
+# Disable 75ohm term : 0.20A
+# Disable Virtual VCCIO : 0.17A
+# Disable ODT : N/A
 
 # This variable defines all the external programs that this module
 # relies on.  lxbuildenv reads this variable in order to ensure
@@ -19,8 +25,6 @@ LX_DEPENDENCIES = ["riscv", "nextpnr-ecp5", "yosys"]
 
 # Import lxbuildenv to integrate the deps/ directory
 import lxbuildenv
-
-
 
 import sys
 import os
@@ -58,9 +62,10 @@ from migen.genlib.cdc import MultiReg
 
 import valentyusb
 
-from rtl.rgb import RGB
 from litex.soc.cores import spi_flash
 from litex.soc.cores.gpio import GPIOTristate, GPIOOut, GPIOIn
+
+from rtl.sdr import sdr
 
 #  fn       RX  TX  SDA SCL                           MISO SCK MOSI  a0 a1 a2 a3 a4 a5
 #  GPIO#     0   1   2   3 4  5   6 7 8  9 10 11 12 13 14  15  16  17 18 19 20 21 22 23
@@ -186,6 +191,7 @@ class BaseSoC(SoCCore):
         "lxspi":          15,
         "button":         17,
         "i2c":            19,
+        "sdr":            20
     }
     csr_map.update(SoCCore.csr_map)
 
@@ -267,6 +273,10 @@ class BaseSoC(SoCCore):
         # i2c
         self.submodules.i2c = I2CMaster(platform.request("i2c"))
 
+        # SDR processor
+        self.submodules.sdr = sdr(platform.request("ad9203"), platform.request("pdm_out"))
+        platform.add_source_dir('vsrc')
+        
         # Controllable Self Reset
         reset_code = Signal(32, reset=0)
         self.submodules.self_reset = GPIOOut(reset_code)
