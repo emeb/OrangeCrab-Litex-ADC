@@ -15,7 +15,7 @@
 # Original current : 0.29A
 # Disable 75ohm term : 0.20A
 # Disable Virtual VCCIO : 0.17A
-# Disable ODT : N/A
+# Disable ODT : 0.11A
 
 # This variable defines all the external programs that this module
 # relies on.  lxbuildenv reads this variable in order to ensure

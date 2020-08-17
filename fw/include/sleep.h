@@ -3,9 +3,11 @@
  * Copyright 2020 Greg Davill <greg.davill@gmail.com> 
  */
 
-#ifndef SEEP_H__
+#ifndef SLEEP_H__
 #define SLEEP_H__
 
 void msleep(int ms);
+void sleep_tstart(void);
+uint32_t sleep_tget(void);
 
 #endif

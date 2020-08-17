@@ -77,7 +77,8 @@ int main(int i, char **c)
 	
 	printf("Test:SPI-FLASH|Pass\n");
 
-	printf("Test:DDR3 Start\n");
+#if 0
+       printf("Test:DDR3 Start\n");
 	/* Init Memory */
 	int sdr_ok = sdrinit();
 	if(sdr_ok == 0){
@@ -85,7 +86,8 @@ int main(int i, char **c)
 		//self_reset_out_write(0xAA550001);
 	}
 	printf("Test:DDR3|Pass\n");
-
+#endif
+       
 	/* Test of LED GPIO */
 	uint8_t led_gpio_patterns[] = {0x0, 0x1, 0x2, 0x4, 0x7};
 	for(int i = 0; i < sizeof(led_gpio_patterns); i++){
@@ -103,12 +105,25 @@ int main(int i, char **c)
 
 	
 	gpio_led_out_write(~2);
+    
+    /* read SDR regs */
+    printf("SDR Freq = %d\n", sdr_ddc_freq_read());
+    printf("SDR ns_ena = %d\n", sdr_ddc_ns_ena_read());
+    printf("SDR cic_shf = %d\n", sdr_ddc_cic_shf_read());
+    printf("SDR dr = %d\n", sdr_ddc_dr_read());
+    printf("SDR demod_type = %d\n", sdr_demod_type_read());
 
 	printf("Test:DONE, Finish\n");
+#if 0
 	msleep(50);
 	while(1){
 		msleep(10);
 	}
-
+#else
+    while(1)
+    {
+        uart_write(uart_read());
+    }
+#endif
 	return 0;
 }
