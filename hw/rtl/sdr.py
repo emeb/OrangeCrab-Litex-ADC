@@ -30,6 +30,9 @@ class sdr(Module, AutoCSR):
         self.specials += [
             # DDC instance
             Instance("ddc_14",
+                p_isz       = 10,
+                p_fsz       = 26,
+                p_osz       = 16,
                 i_clk       = adc_pins.clk,
                 i_reset     = self.reset,
                 i_in        = adc_pins.data,
