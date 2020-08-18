@@ -106,8 +106,8 @@ class CRG(Module):
         self.clock_domains.cd_init     = ClockDomain()
         self.clock_domains.cd_por      = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys      = ClockDomain()
-        self.clock_domains.cd_sys2x    = ClockDomain()
-        self.clock_domains.cd_sys2x_i  = ClockDomain()
+        #self.clock_domains.cd_sys2x    = ClockDomain()
+        #self.clock_domains.cd_sys2x_i  = ClockDomain()
 
 
         # # #
@@ -134,30 +134,31 @@ class CRG(Module):
         self.sync.por += If(~por_done, por_count.eq(por_count - 1))
 
         # PLL
-        sys2x_clk_ecsout = Signal()
+        #sys2x_clk_ecsout = Signal()
         self.submodules.pll = pll = ECP5PLL()
         pll.register_clkin(clk48, 48e6)
-        pll.create_clkout(self.cd_sys2x_i, 2*sys_clk_freq)
-        pll.create_clkout(self.cd_init, 24e6)
+        #pll.create_clkout(self.cd_sys2x_i, 2*sys_clk_freq)
+        #pll.create_clkout(self.cd_init, 24e6)
+        pll.create_clkout(self.cd_sys, sys_clk_freq)
         self.specials += [
-            Instance("ECLKBRIDGECS",
-                i_CLK0   = self.cd_sys2x_i.clk,
-                i_SEL    = 0,
-                o_ECSOUT = sys2x_clk_ecsout),
-            Instance("ECLKSYNCB",
-                i_ECLKI = sys2x_clk_ecsout,
-                i_STOP  = self.stop,
-                o_ECLKO = self.cd_sys2x.clk),
-            Instance("CLKDIVF",
-                p_DIV     = "2.0",
-                i_ALIGNWD = 0,
-                i_CLKI    = self.cd_sys2x.clk,
-                i_RST     = self.reset,
-                o_CDIVX   = self.cd_sys.clk),
-            AsyncResetSynchronizer(self.cd_init,  ~por_done | ~pll.locked),
+            #Instance("ECLKBRIDGECS",
+            #    i_CLK0   = self.cd_sys2x_i.clk,
+            #    i_SEL    = 0,
+            #    o_ECSOUT = sys2x_clk_ecsout),
+            #Instance("ECLKSYNCB",
+            #    i_ECLKI = sys2x_clk_ecsout,
+            #    i_STOP  = self.stop,
+            #    o_ECLKO = self.cd_sys2x.clk),
+            #Instance("CLKDIVF",
+            #    p_DIV     = "2.0",
+            #    i_ALIGNWD = 0,
+            #    i_CLKI    = self.cd_sys2x.clk,
+            #    i_RST     = self.reset,
+            #    o_CDIVX   = self.cd_sys.clk),
+            #AsyncResetSynchronizer(self.cd_init,  ~por_done | ~pll.locked),
             AsyncResetSynchronizer(self.cd_sys,   ~por_done | ~pll.locked | self.reset),
-            AsyncResetSynchronizer(self.cd_sys2x, ~por_done | ~pll.locked | self.reset),
-            AsyncResetSynchronizer(self.cd_sys2x_i, ~por_done | ~pll.locked | self.reset),
+            #AsyncResetSynchronizer(self.cd_sys2x, ~por_done | ~pll.locked | self.reset),
+            #AsyncResetSynchronizer(self.cd_sys2x_i, ~por_done | ~pll.locked | self.reset),
         ]
 
         # USB PLL
@@ -231,37 +232,37 @@ class BaseSoC(SoCCore):
         self.submodules.crg = crg = CRG(platform, sys_clk_freq, with_usb_pll=True)
 
         # DDR3 SDRAM -------------------------------------------------------------------------------
-        #if 0:
-        if not self.integrated_main_ram_size:
-            available_sdram_modules = {
-                'MT41K64M16': MT41K64M16,
-                'MT41K128M16': MT41K128M16,
-                'MT41K256M16': MT41K256M16
-            }
-            sdram_module = available_sdram_modules.get(
-                kwargs.get("sdram_device", "MT41K64M16"))
+        if 0:
+            if not self.integrated_main_ram_size:
+                available_sdram_modules = {
+                    'MT41K64M16': MT41K64M16,
+                    'MT41K128M16': MT41K128M16,
+                    'MT41K256M16': MT41K256M16
+                }
+                sdram_module = available_sdram_modules.get(
+                    kwargs.get("sdram_device", "MT41K64M16"))
 
-            ddr_pads = platform.request("ddram")
-            self.submodules.ddrphy = ECP5DDRPHY(
-                ddr_pads,
-                sys_clk_freq=sys_clk_freq)
-            self.add_csr("ddrphy")
-            self.add_constant("ECP5DDRPHY")
-            self.comb += crg.stop.eq(self.ddrphy.init.stop)
-            self.comb += crg.reset.eq(self.ddrphy.init.reset)
-            self.add_sdram("sdram",
-                phy                     = self.ddrphy,
-                module                  = sdram_module(sys_clk_freq, "1:2"),
-                origin                  = self.mem_map["main_ram"],
-                size                    = kwargs.get("max_sdram_size", 0x40000000),
-                l2_cache_size           = kwargs.get("l2_size", 8192),
-                l2_cache_min_data_width = kwargs.get("min_l2_data_width", 128),
-                l2_cache_reverse        = True
-            )
+                ddr_pads = platform.request("ddram")
+                self.submodules.ddrphy = ECP5DDRPHY(
+                    ddr_pads,
+                    sys_clk_freq=sys_clk_freq)
+                self.add_csr("ddrphy")
+                self.add_constant("ECP5DDRPHY")
+                self.comb += crg.stop.eq(self.ddrphy.init.stop)
+                self.comb += crg.reset.eq(self.ddrphy.init.reset)
+                self.add_sdram("sdram",
+                    phy                     = self.ddrphy,
+                    module                  = sdram_module(sys_clk_freq, "1:2"),
+                    origin                  = self.mem_map["main_ram"],
+                    size                    = kwargs.get("max_sdram_size", 0x40000000),
+                    l2_cache_size           = kwargs.get("l2_size", 8192),
+                    l2_cache_min_data_width = kwargs.get("min_l2_data_width", 128),
+                    l2_cache_reverse        = True
+                )
 
-            # Virtual power pins - suggested to reduce SSO noise
-            #self.comb += ddr_pads.vccio.eq(1)
-            self.comb += ddr_pads.gnd.eq(0)
+                # Virtual power pins - suggested to reduce SSO noise
+                #self.comb += ddr_pads.vccio.eq(1)
+                self.comb += ddr_pads.gnd.eq(0)
 
         # Add extra pin definitions
         platform.add_extension(extras)
