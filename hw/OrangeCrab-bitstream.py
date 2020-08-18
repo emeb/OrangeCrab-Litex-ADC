@@ -75,7 +75,7 @@ from rtl.sdr import sdr
 # connect all remaining GPIO pins out
 extras = [
     ("ad9203", 0,
-        Subsignal("data", Pins("GPIO:0 GPIO:1 GPIO:14 GPIO:5 GPIO:6 GPIO:9 GPIO:10 GPIO:11 GPIO:12 GPIO:13")),
+        Subsignal("data", Pins("GPIO:1 GPIO:0 GPIO:14 GPIO:5 GPIO:6 GPIO:9 GPIO:10 GPIO:11 GPIO:12 GPIO:13")),
         Subsignal("clk", Pins("GPIO:23")),
         IOStandard("LVCMOS33")
     ),
