@@ -7,16 +7,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <uart.h>
+
 #include <generated/csr.h>
 #include <generated/mem.h>
 #include <generated/git.h>
 
-#include <irq.h>
-#include <uart.h>
-
-#include <sleep.h>
-#include <flash-spi.h>
-
+#include "irq.h"
+#include "sleep.h"
+#include "flash-spi.h"
+#include "command.h"
+#include "readline.h"
+#include "helpers.h"
 
 void print_buffer(uint8_t* ptr, uint8_t len){
 	for(int i = 0; i < len; i++){
@@ -32,23 +34,24 @@ void test_fail(const char* str){
 
 int main(int i, char **c)
 {
+	char buffer[CMD_LINE_BUFFER_SIZE];
+	struct command_struct *cmd;
+	char *command;
+	int nb_params;
+	char *params[MAX_PARAM];
+    
 	/* Setup IRQ, needed for UART */
 	irq_setmask(0);
 	irq_setie(1);
 	uart_init();
 
-
+    /* banner */
 	printf("\n");
-
 	printf("Info:Hello from OrangeCrab! o/ \n");
 	printf("Info:build_date "__DATE__" "__TIME__ "\n");
-
 	printf("Info:test-repo "REPO_GIT_SHA1"\n");
 	printf("Info:migen "MIGEN_GIT_SHA1"\n");
 	printf("Info:litex "LITEX_GIT_SHA1"\n");
-
-
-
 
 	/* Check for SPI FLASH */
 	printf("Test:SPI-FLASH, Start\n");
@@ -61,11 +64,11 @@ int main(int i, char **c)
 	printf("Info:SPI-FLASH-ID=");
 	print_buffer(id, 5);
 	printf("\n");
-	if(id[0] != 0xef |
-	   id[1] != 0x17 |
-	   id[2] != 0xef |
-	   id[3] != 0x40 |
-	   id[4] != 0x18 ){
+	if((id[0] != 0xef) |
+	   (id[1] != 0x17) |
+	   (id[2] != 0xef) |
+	   (id[3] != 0x40) |
+	   (id[4] != 0x18) ){
 		   test_fail("Test:SPI-FLASH|Fail");
 	   }
 
@@ -102,22 +105,7 @@ int main(int i, char **c)
 		/* Print values */
 		printf("{%01X:%01X}\n",out_pattern, read_pattern);
 	}
-
-	
 	gpio_led_out_write(~2);
-    
-    /* read SDR regs */
-    printf("SDR Freq = %d\n", sdr_ddc_freq_read());
-    printf("SDR ns_ena = %d\n", sdr_ddc_ns_ena_read());
-    printf("SDR cic_shf = %d\n", sdr_ddc_cic_shf_read());
-    printf("SDR dr = %d\n", sdr_ddc_dr_read());
-    printf("SDR demod_type = %d\n", sdr_demod_type_read());
-
-    /* write sdr regs */
-    sdr_ddc_freq_write(2197815);
-    printf("SDR Freq = %d\n", sdr_ddc_freq_read());
-    sdr_ddc_cic_shf_write(7);
-    printf("SDR cic_shf = %d\n", sdr_ddc_cic_shf_read());
     
 	printf("Test:DONE, Finish\n");
 #if 0
@@ -126,10 +114,18 @@ int main(int i, char **c)
 		msleep(10);
 	}
 #else
-    while(1)
-    {
-        uart_write(uart_read());
-    }
+    printf("\n%s", PROMPT);
+	while(1) {
+		readline(buffer, CMD_LINE_BUFFER_SIZE);
+		if (buffer[0] != 0) {
+			printf("\n");
+			nb_params = get_param(buffer, &command, params);
+			cmd = command_dispatcher(command, nb_params, params);
+			if (!cmd)
+				printf("Command not found");
+		}
+		printf("\n%s", PROMPT);
+	}
 #endif
 	return 0;
 }

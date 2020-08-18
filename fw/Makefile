@@ -12,6 +12,12 @@ CFLAGS += -DI2C_FREQ_HZ=400
 OBJECTS = isr.o			\
 		sleep.o         \
 		flash-spi.o     \
+        readline.o      \
+        complete.o      \
+        helpers.o       \
+        cmd_mem.o       \
+        cmd_bios.o      \
+        cmd_sdr.o       \
 	    main.o
 
 

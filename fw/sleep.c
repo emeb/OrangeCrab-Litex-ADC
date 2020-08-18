@@ -4,6 +4,7 @@
  */
 
 #include <generated/csr.h>
+#include "sleep.h"
 
 void msleep(int ms)
 {
