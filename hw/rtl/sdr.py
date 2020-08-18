@@ -3,7 +3,7 @@
 
 from migen import *
 
-from litex.soc.interconnect.csr import AutoCSR, CSRStorage, CSRField
+from litex.soc.interconnect.csr import AutoCSR, CSRStorage, CSRField, CSRStatus
 
 class sdr(Module, AutoCSR):
     def __init__(self, adc_pins, pdm_pins):
@@ -14,6 +14,7 @@ class sdr(Module, AutoCSR):
         self.ddc_cic_shf = CSRStorage(3, reset=6)
         self.ddc_dr = CSRStorage(2, reset=0)
         self.demod_type = CSRStorage(3, reset=0)
+        self.ddc_satcnt = CSRStatus(7, reset=0)
         
         # interfaces between instances
         self.reset = Signal()
@@ -40,7 +41,7 @@ class sdr(Module, AutoCSR):
                 i_frq       = self.ddc_freq.storage,
                 i_cic_shf   = self.ddc_cic_shf.storage,
                 i_ns_ena    = self.ddc_ns_ena.storage,
-                o_sathld    = sathld,
+                o_sathld    = self.ddc_satcnt.status,
                 o_valid     = ddc_valid,
                 o_i_out     = ddc_i,
                 o_q_out     = ddc_q,

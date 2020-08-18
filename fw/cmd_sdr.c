@@ -43,10 +43,11 @@ static void sdr_status(int nb_params, char **params)
     uint64_t temp = freq;
     freq = (temp*FSAMP)>>26;
     printf("LO Frequency: %d Hz\n", freq);
-    printf("LO Noise Shaping= %s\n", sdr_ddc_ns_ena_read() ? "On" : "Off");
+    printf("LO Noise Shaping: %s\n", sdr_ddc_ns_ena_read() ? "On" : "Off");
     printf("CIC Gain Shift: %d bits\n", sdr_ddc_cic_shf_read());
     printf("Sample Rate: %skSPS (%d)\n", sr_names[sdr_ddc_dr_read()&3], sdr_ddc_dr_read());
     printf("Demod: %s (%d)\n", demod_names[sdr_demod_type_read()&7], sdr_demod_type_read());
+    printf("Saturation Rate: %d %%\n", (100*sdr_ddc_satcnt_read())>>7);
 }
 
 define_command(sdr_status, sdr_status, "Get SDR settings & status", SDR_CMDS);
