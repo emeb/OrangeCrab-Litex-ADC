@@ -113,6 +113,12 @@ int main(int i, char **c)
     printf("SDR dr = %d\n", sdr_ddc_dr_read());
     printf("SDR demod_type = %d\n", sdr_demod_type_read());
 
+    /* write sdr regs */
+    sdr_ddc_freq_write(2197815);
+    printf("SDR Freq = %d\n", sdr_ddc_freq_read());
+    sdr_ddc_cic_shf_write(7);
+    printf("SDR cic_shf = %d\n", sdr_ddc_cic_shf_read());
+    
 	printf("Test:DONE, Finish\n");
 #if 0
 	msleep(50);
