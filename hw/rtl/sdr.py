@@ -11,7 +11,7 @@ class sdr(Module, AutoCSR):
         # DDC control registers
         self.ddc_freq = CSRStorage(26, reset=2415919)
         self.ddc_ns_ena = CSRStorage(1, reset=0)
-        self.ddc_cic_shf = CSRStorage(3, reset=6)
+        self.ddc_cic_shf = CSRStorage(4, reset=6)
         self.ddc_dr = CSRStorage(2, reset=0)
         self.demod_type = CSRStorage(3, reset=0)
         self.ddc_satcnt = CSRStatus(7, reset=0)

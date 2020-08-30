@@ -18,7 +18,7 @@ module ddc_14 #(
     input signed [isz-1:0] in,
 	input [1:0] dr,
 	input [fsz-1:0] frq,
-    input [2:0] cic_shf,
+    input [3:0] cic_shf,
     input ns_ena,
     output reg [6:0] sathld,
     output valid,

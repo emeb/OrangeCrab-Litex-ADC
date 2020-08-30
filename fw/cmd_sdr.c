@@ -128,7 +128,7 @@ static void sdr_set_cicgain(int nb_params, char **params)
 		printf("bad shift");
 		return;
 	}
-    shift = shift > 7 ? 7 : shift;
+    shift = shift > 15 ? 15 : shift;
     
 	sdr_ddc_cic_shf_write(shift);
 }
