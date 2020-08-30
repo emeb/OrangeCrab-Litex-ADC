@@ -241,7 +241,7 @@ class BaseSoC(SoCCore):
         self.submodules.crg = crg = CRG(platform, sys_clk_freq, with_usb_pll=True)
 
         # DDR3 SDRAM -------------------------------------------------------------------------------
-        if 0:
+        if 1:
             if not self.integrated_main_ram_size:
                 available_sdram_modules = {
                     'MT41K64M16': MT41K64M16,
@@ -270,7 +270,7 @@ class BaseSoC(SoCCore):
                 )
 
                 # Virtual power pins - suggested to reduce SSO noise
-                #self.comb += ddr_pads.vccio.eq(1)
+                self.comb += ddr_pads.vccio.eq(0b111111)
                 self.comb += ddr_pads.gnd.eq(0)
 
         # Add extra pin definitions

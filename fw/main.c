@@ -80,7 +80,7 @@ int main(int i, char **c)
 	
 	printf("Test:SPI-FLASH|Pass\n");
 
-#if 0
+#if 1
        printf("Test:DDR3 Start\n");
 	/* Init Memory */
 	int sdr_ok = sdrinit();
