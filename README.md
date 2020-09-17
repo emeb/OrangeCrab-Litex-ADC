@@ -2,7 +2,7 @@
 This repository contains the firmware and gateware for the OrangeCrab to
 enable testing of the OrangeCrab ADC in a simple SDR application
 
-Gateware is done in Litex and Verilog and the firmware is C
+Gateware is done in Litex and Verilog and the firmware is C.
 
 ---
 ## Hardware ##
