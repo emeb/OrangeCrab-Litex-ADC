@@ -16,7 +16,7 @@ Current status: in developement - basic SDR operations working
 To create the bitstream for the OrangeCrab run the following,
 use `--update-firmware` flag when updating changes in firmware only.
 
-cd hw
+    cd hw
     python3 OrangeCrab-bitstream.py [--update-firmware]
 
 To load the bitstream
